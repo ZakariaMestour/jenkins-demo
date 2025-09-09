@@ -9,6 +9,7 @@ pipeline{
                   namespace: jenkins
                   name: jenkins-agent
                 spec:
+                  serviceAccountName: jenkins-k8s
                   containers:
                   - name: git
                     image: alpine/git
@@ -30,31 +31,36 @@ pipeline{
         }
     }
     stages{
-		stage('checking out the code'){
+		stage('Checkout'){
 			steps{
 				container('git'){
 					sh 'git version'
+                    sh 'git clone https://github.com/ZakariaMestour/jenkins-demo.git'
+                    sh 'ls -la'
                 }
             }
         }
-        stage('building the code'){
+        stage('Build App'){
 			steps{
 				container('maven'){
-					sh 'mvn -version'
+					sh 'mvn -f jenkins-demo/pom.xml clean compile'
+                    sh 'mvn -f jenkins-demo/pom.xml test'
+                    sh 'mvn -f jenkins-demo/pom.xml package'
+
                 }
             }
         }
-        stage('building the docker image'){
+        stage('Build Docker Image'){
 			steps{
 				container('docker'){
 					sh 'docker --version'
                 }
             }
         }
-        stage('deploying the application'){
+        stage('Deploy'){
 			steps{
 				container('kubectl'){
-					sh 'kubectl version --client'
+					sh 'kubectl get po -n jenkins'
                 }
             }
         }
