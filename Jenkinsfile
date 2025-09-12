@@ -19,6 +19,9 @@ pipeline{
                     image: maven:3.8.5
                     command: ['cat']
                     tty: true
+                    volumeMounts:
+                      - name: m2-cache
+                        mountPath: /root/.m2
                   - name: docker
                     image: docker:24.0
                     command: ['cat']
@@ -27,26 +30,27 @@ pipeline{
                     image: beli/kubectl-shell
                     command: ['cat']
                     tty: true
+                  volumes:
+                    - name: m2-cache
+                      persistentVolumeClaim:
+                        claimName: maven-cache-pvc
             """
         }
     }
     stages{
-		stage('Checkout'){
-			steps{
-				container('git'){
-					sh 'git version'
-                    sh 'git clone https://github.com/ZakariaMestour/jenkins-demo.git'
-                    sh 'ls -la'
-                }
-            }
-        }
-        stage('Build App'){
+
+		stage('Build App'){
 			steps{
 				container('maven'){
 					sh 'mvn -f jenkins-demo/pom.xml clean compile'
                     sh 'mvn -f jenkins-demo/pom.xml test'
                     sh 'mvn -f jenkins-demo/pom.xml package'
 
+                }
+            }
+            post{
+				always{
+					junit 'jenkins-demo/target/surefire-reports/*.xml'
                 }
             }
         }
