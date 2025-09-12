@@ -42,15 +42,15 @@ pipeline{
 		stage('Build App'){
 			steps{
 				container('maven'){
-					sh 'mvn -f jenkins-demo/pom.xml clean compile'
-                    sh 'mvn -f jenkins-demo/pom.xml test'
-                    sh 'mvn -f jenkins-demo/pom.xml package'
+					sh 'mvn  clean compile'
+                    sh 'mvn  test'
+                    sh 'mvn  package'
 
                 }
             }
             post{
 				always{
-					junit 'jenkins-demo/target/surefire-reports/*.xml'
+					junit 'target/surefire-reports/*.xml'
                 }
             }
         }
