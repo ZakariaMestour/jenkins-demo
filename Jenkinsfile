@@ -55,7 +55,7 @@ pipeline{
                	success{
 					script{
 						def jarName = "demo-build-${env.BUILD_NUMBER}.jar"
-                        sh "cp target/*.jar target/${jarName}"
+                        sh " sudo cp target/*.jar target/${jarName}"
                         archiveArtifacts artifacts: 'target/*.jar', fingerprint: true, allowEmptyArchive: false
                         container('maven'){
 							sh 'curl -I http://192.168.100.6:32000 || echo "cannot reach nexus"'
