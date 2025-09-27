@@ -55,7 +55,7 @@ pipeline{
                	success{
 
                         container('maven'){
-                          withCredentials([usernamePassword(credentialsId: 'nexus-credentials', passwordVariable: 'NEXUS_PASSWORD', usernameVariable: 'NEXUS_USERNAME')]) {
+                          withCredentials([usernamePassword(credentialsId: 'nexus-credentials', passwordVariable: 'NEXUS_PASSWORD', usernameVariable: 'NEXUS_USERNAME')])
 							script{
 								def jarName = "demo-build-${env.BUILD_NUMBER}.jar"
 								sh "cp target/*.jar target/${jarName}"
