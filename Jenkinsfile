@@ -62,8 +62,19 @@ pipeline{
 								archiveArtifacts artifacts: 'target/*.jar', fingerprint: true, allowEmptyArchive: false
 								sh 'curl -I http://192.168.100.6:32000 || echo "cannot reach nexus"'
 								sh 'ls -la target/*.jar'
+								writeFile file: 'settings.xml', text: """
+                                  <settings>
+                                    <servers>
+                                    <server>
+                                      <id>nexus-releases</id>
+                                      <username>${NEXUS_USERNAME}</username>
+                                      <password>${NEXUS_PASSWORD}</password>
+                                    </server>
+                                    </servers>
+                                  </settings>
+                                  """
 								sh """
-									mvn deploy:deploy-file -DgroupId=com.example -DartifactId=jenkins-demo -Dversion=1.0-${env.BUILD_NUMBER} -Dpackaging=jar -Dfile=target/${jarName} -Durl=http://192.168.100.6:32000/repository/maven-releases/ -DrepositoryId=nexus-releases -DgeneratePom=true -Drepository.username=${NEXUS_USERNAME} -Drepository.password=${NEXUS_PASSWORD}
+									mvn deploy:deploy-file -DgroupId=com.example -DartifactId=jenkins-demo -Dversion=1.0-${env.BUILD_NUMBER} -Dpackaging=jar -Dfile=target/${jarName} -Durl=http://192.168.100.6:32000/repository/maven-releases/ -DrepositoryId=nexus-releases -DgeneratePom=true
 									"""
                     		}
                     	  }
