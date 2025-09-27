@@ -57,17 +57,17 @@ pipeline{
                         container('maven'){
                           withCredentials([usernamePassword(credentialsId: 'nexus-credentials', passwordVariable: 'NEXUS_PASSWORD', usernameVariable: 'NEXUS_USERNAME')]){
 							script{
-								def jarName = "demo-build-${env.BUILD_NUMBER}.jar"
+								def jarName = "jenkins-demo-${env.BUILD_NUMBER}.jar"
 								sh "cp target/*.jar target/${jarName}"
 								archiveArtifacts artifacts: 'target/*.jar', fingerprint: true, allowEmptyArchive: false
 								sh 'curl -I http://192.168.100.6:32000 || echo "cannot reach nexus"'
 								sh 'ls -la target/*.jar'
 								// Upload using curl (simpler and more reliable)
-                                sh """
+                                sh '''
                                     curl -v -u ${NEXUS_USERNAME}:${NEXUS_PASSWORD} \
                                     --upload-file target/${jarName} \
-                                    http://192.168.100.6:32000/repository/maven-releases/com/example/jenkins-demo/1.0-${env.BUILD_NUMBER}/${jarName}
-                                """
+                                    http://192.168.100.6:32000/repository/maven-releases/com/example/jenkins-demo/${version}/${jarName}
+                                '''
 
                     		}
                     	  }
