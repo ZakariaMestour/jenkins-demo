@@ -55,7 +55,7 @@ pipeline{
                	success{
 
                         container('maven'){
-                          withCredentials([usernamePassword(credentialsId: 'nexus-credentials', passwordVariable: 'NEXUS_PASSWORD', usernameVariable: 'NEXUS_USERNAME')])
+                          withCredentials([usernamePassword(credentialsId: 'nexus-credentials', passwordVariable: 'NEXUS_PASSWORD', usernameVariable: 'NEXUS_USERNAME')]){
 							script{
 								def jarName = "demo-build-${env.BUILD_NUMBER}.jar"
 								sh "cp target/*.jar target/${jarName}"
@@ -66,6 +66,7 @@ pipeline{
 									mvn deploy:deploy-file -DgroupId=com.example -DartifactId=jenkins-demo -Dversion=1.0-${env.BUILD_NUMBER} -Dpackaging=jar -Dfile=target/${jarName} -Durl=http://192.168.100.6:32000/repository/maven-releases/ -DrepositoryId=nexus-releases -DgeneratePom=true -Drepository.username=${NEXUS_USERNAME} -Drepository.password=${NEXUS_PASSWORD}
 									"""
                     		}
+                    	  }
                     }
 
                 }
