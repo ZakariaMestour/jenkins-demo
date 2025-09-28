@@ -26,8 +26,6 @@ pipeline{
                     image: docker:24.0
                     command: ['cat']
                     tty: true
-                    securityContext:
-                      privileged: true
                     volumeMounts:
                       - name: docker-sock
                         mountPath: /var/run/docker.sock
