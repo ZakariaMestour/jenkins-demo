@@ -22,13 +22,10 @@ pipeline{
                     volumeMounts:
                       - name: m2-cache
                         mountPath: /root/.m2
-                  - name: docker
-                    image: docker:24.0
+                  - name: kaniko
+                    image: gcr.io/kaniko-project/executor:debug
                     command: ['cat']
                     tty: true
-                    volumeMounts:
-                      - name: docker-sock
-                        mountPath: /var/run/docker.sock
                   - name: kubectl
                     image: beli/kubectl-shell
                     command: ['cat']
@@ -37,10 +34,7 @@ pipeline{
                     - name: m2-cache
                       persistentVolumeClaim:
                         claimName: maven-cache-pvc
-                    - name: docker-socket
-                      hostPath:
-                        path: /var/run/docker.sock
-                        type: Socket
+
             """
         }
     }
@@ -102,24 +96,32 @@ pipeline{
         }
         stage('Build Docker Image'){
 			steps{
-				container('docker'){
-					sh 'docker --version'
-                       script{
-                           def dockerHubUsername = 'zakariamestour'
-                           def imageName = "${dockerHubUsername}/jenkins-demo"
-                           def imageTag = "1.0.${env.BUILD_NUMBER}"
-                           def latestTag = "latest"
-                           def versionTag = "${imageName}:${imageTag}"
+				container('kaniko'){
 
-                           sh "docker build -t ${versionTag} -t ${imageName}:${latestTag} ."
-                           withCredentials([usernamePassword(credentialsId: 'docker_hub', passwordVariable: 'DOCKERHUB_PASSWORD', usernameVariable: 'DOCKERHUB_USERNAME')]){
-                               sh """
-                                   echo \$DOCKERHUB_PASSWORD | docker login -u \$DOCKERHUB_USERNAME --password-stdin
-                                   docker push ${versionTag}
-                                   docker push ${imageName}:${latestTag}
-                               """
-                           }
-                       }
+                    withCredentials([usernamePassword(credentialsId: 'docker_hub', passwordVariable: 'DOCKERHUB_PASSWORD', usernameVariable: 'DOCKERHUB_USERNAME')]){
+                        script{
+                          def dockerHubUsername = 'zakariamestour'
+                          def imageName = "${dockerHubUsername}/jenkins-demo"
+                          def imageTag = "1.0.${env.BUILD_NUMBER}"
+                          sh """
+                            echo "{\"auths\":{\"https://index.docker.io/v1/\":{\"username\":\"${DOCKERHUB_USERNAME}\",\"password\":\"${DOCKERHUB_PASSWORD}\"}}}" > /kaniko/.docker/config.json
+                          """
+                          sh """
+                          /kaniko/executor \
+                          --dockerfile=Dockerfile \
+                          --context=. \
+                          --destination=${imageName}:${imageTag} \
+                          --destination=${imageName}:latest \
+                          --cache=true \
+                          --compressed-caching=false
+
+                          """
+                          echo "Image pushed to DockerHub: ${imageName}:${imageTag}"
+
+                        }
+                    }
+
+
                 }
             }
         }
