@@ -26,6 +26,8 @@ pipeline{
                     image: docker:24.0
                     command: ['cat']
                     tty: true
+                    securityContext:
+                      privileged: true
                   - name: kubectl
                     image: beli/kubectl-shell
                     command: ['cat']
