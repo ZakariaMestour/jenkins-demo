@@ -59,35 +59,33 @@ pipeline{
                                 // Debug: Show what files exist
                                 sh 'ls -la target/'
 
-                                // Debug: Show environment variables
-                                sh 'echo "BUILD_NUMBER: ${BUILD_NUMBER}"'
-                                sh 'echo "BUILD_NUMBER env: ${env.BUILD_NUMBER}"'
-
-                                // Set variables explicitly
-                                def version = "1.0.${env.BUILD_NUMBER}"
+                                // Set variables in Groovy (not shell)
+                                def buildNumber = env.BUILD_NUMBER
+                                def version = "1.0.${buildNumber}"
                                 def jarName = "jenkins-demo-${version}.jar"
 
-                                // Debug: Show variables
-                                sh "echo 'Version: ${version}'"
-                                sh "echo 'JAR Name: ${jarName}'"
+                                // Debug: Show variables (using echo, not sh)
+                                echo "Build Number: ${buildNumber}"
+                                echo "Version: ${version}"
+                                echo "JAR Name: ${jarName}"
 
                                 // Copy and rename JAR
-                                sh "cp target/*.jar target/${jarName}"
+                                sh "cp target/demo-0.0.1-SNAPSHOT.jar target/${jarName}"
 
                                 // Debug: Verify the copy worked
                                 sh 'ls -la target/'
 
                                 archiveArtifacts artifacts: 'target/*.jar', fingerprint: true, allowEmptyArchive: false
 
-                                // Debug: Show final URL that will be used
+                                // Debug: Show final URL
                                 def uploadUrl = "http://192.168.100.6:32000/repository/maven-releases/com/example/jenkins-demo/${version}/${jarName}"
-                                sh "echo 'Upload URL: ${uploadUrl}'"
+                                echo "Upload URL: ${uploadUrl}"
 
-                                // Now try the upload
+                                // Upload to Nexus
                                 sh """
                                     curl -v -u \${NEXUS_USERNAME}:\${NEXUS_PASSWORD} \
                                     --upload-file target/${jarName} \
-                                    ${uploadUrl}
+                                    '${uploadUrl}'
                                 """
                             }
                         }
