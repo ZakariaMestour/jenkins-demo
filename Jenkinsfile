@@ -103,8 +103,15 @@ pipeline{
                           def dockerHubUsername = 'zakariamestour'
                           def imageName = "${dockerHubUsername}/jenkins-demo"
                           def imageTag = "1.0.${env.BUILD_NUMBER}"
-                          sh """
-                            echo "{\"auths\":{\"https://index.docker.io/v1/\":{\"username\":\"${DOCKERHUB_USERNAME}\",\"password\":\"${DOCKERHUB_PASSWORD}\"}}}" > /kaniko/.docker/config.json
+                          writeFile file: '/kaniko/.docker/config.json', text: """
+                          {
+                              "auths": {
+                                  "https://index.docker.io/v1/": {
+                                      "username": "${DOCKERHUB_USERNAME}",
+                                      "password": "${DOCKERHUB_PASSWORD}"
+                                  }
+                              }
+                          }
                           """
                           sh """
                           /kaniko/executor \
