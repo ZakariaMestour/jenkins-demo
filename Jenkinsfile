@@ -53,26 +53,45 @@ pipeline{
 					junit 'target/surefire-reports/*.xml'
                 }
                	success{
+                    container('maven'){
+                        withCredentials([usernamePassword(credentialsId: 'nexus-credentials', passwordVariable: 'NEXUS_PASSWORD', usernameVariable: 'NEXUS_USERNAME')]){
+                            script{
+                                // Debug: Show what files exist
+                                sh 'ls -la target/'
 
-                        container('maven'){
-                          withCredentials([usernamePassword(credentialsId: 'nexus-credentials', passwordVariable: 'NEXUS_PASSWORD', usernameVariable: 'NEXUS_USERNAME')]){
-							script{
-								def jarName = "jenkins-demo-${env.BUILD_NUMBER}.jar"
-								sh "cp target/*.jar target/${jarName}"
-								archiveArtifacts artifacts: 'target/*.jar', fingerprint: true, allowEmptyArchive: false
-								sh 'curl -I http://192.168.100.6:32000 || echo "cannot reach nexus"'
-								sh 'ls -la target/*.jar'
-								// Upload using curl (simpler and more reliable)
-                                sh '''
-                                    curl -v -u ${NEXUS_USERNAME}:${NEXUS_PASSWORD} \
+                                // Debug: Show environment variables
+                                sh 'echo "BUILD_NUMBER: ${BUILD_NUMBER}"'
+                                sh 'echo "BUILD_NUMBER env: ${env.BUILD_NUMBER}"'
+
+                                // Set variables explicitly
+                                def version = "1.0.${env.BUILD_NUMBER}"
+                                def jarName = "jenkins-demo-${version}.jar"
+
+                                // Debug: Show variables
+                                sh "echo 'Version: ${version}'"
+                                sh "echo 'JAR Name: ${jarName}'"
+
+                                // Copy and rename JAR
+                                sh "cp target/*.jar target/${jarName}"
+
+                                // Debug: Verify the copy worked
+                                sh 'ls -la target/'
+
+                                archiveArtifacts artifacts: 'target/*.jar', fingerprint: true, allowEmptyArchive: false
+
+                                // Debug: Show final URL that will be used
+                                def uploadUrl = "http://192.168.100.6:32000/repository/maven-releases/com/example/jenkins-demo/${version}/${jarName}"
+                                sh "echo 'Upload URL: ${uploadUrl}'"
+
+                                // Now try the upload
+                                sh """
+                                    curl -v -u \${NEXUS_USERNAME}:\${NEXUS_PASSWORD} \
                                     --upload-file target/${jarName} \
-                                    http://192.168.100.6:32000/repository/maven-releases/com/example/jenkins-demo/${version}/${jarName}
-                                '''
-
-                    		}
-                    	  }
+                                    ${uploadUrl}
+                                """
+                            }
+                        }
                     }
-
                 }
             }
         }
