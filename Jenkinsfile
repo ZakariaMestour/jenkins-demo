@@ -28,6 +28,9 @@ pipeline{
                     tty: true
                     securityContext:
                       privileged: true
+                    volumeMounts:
+                      - name: docker-sock
+                        mountPath: /var/run/docker.sock
                   - name: kubectl
                     image: beli/kubectl-shell
                     command: ['cat']
@@ -36,6 +39,10 @@ pipeline{
                     - name: m2-cache
                       persistentVolumeClaim:
                         claimName: maven-cache-pvc
+                    - name: docker-socket
+                      hostPath:
+                        path: /var/run/docker.sock
+                        type: Socket
             """
         }
     }
