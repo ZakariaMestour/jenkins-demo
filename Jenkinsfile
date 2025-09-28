@@ -103,26 +103,23 @@ pipeline{
                           def dockerHubUsername = 'zakariamestour'
                           def imageName = "${dockerHubUsername}/jenkins-demo"
                           def imageTag = "1.0.${env.BUILD_NUMBER}"
-                          writeFile file: '/kaniko/.docker/config.json', text: """
-                          {
-                              "auths": {
-                                  "https://index.docker.io/v1/": {
-                                      "username": "${DOCKERHUB_USERNAME}",
-                                      "password": "${DOCKERHUB_PASSWORD}"
-                                  }
-                              }
-                          }
-                          """
-                          sh """
-                          /kaniko/executor \
-                          --dockerfile=Dockerfile \
-                          --context=. \
-                          --destination=${imageName}:${imageTag} \
-                          --destination=${imageName}:latest \
-                          --cache=true \
-                          --compressed-caching=false
 
-                          """
+                          // Set environment variables for Kaniko
+                          withEnv([
+                              "DOCKER_CONFIG=/tmp/.docker"
+                          ]) {
+                              sh """
+                              mkdir -p /tmp/.docker
+                              echo '{"auths":{"https://index.docker.io/v1/":{"username":"${env.DOCKERHUB_USERNAME}","password":"${env.DOCKERHUB_PASSWORD}"}}}' > /tmp/.docker/config.json
+                              /kaniko/executor \
+                              --dockerfile=Dockerfile \
+                              --context=. \
+                              --destination=${imageName}:${imageTag} \
+                              --destination=${imageName}:latest \
+                              --cache=true \
+                              --compressed-caching=false
+                              """
+                          }
                           echo "Image pushed to DockerHub: ${imageName}:${imageTag}"
 
                         }
