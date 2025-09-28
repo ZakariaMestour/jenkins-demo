@@ -71,7 +71,7 @@ pipeline{
 
                                 // Copy and rename JAR
                                 sh "cp target/demo-0.0.1-SNAPSHOT.jar target/${jarName}"
-
+                                //sh "rm -f target/demo-0.0.1-SNAPSHOT.jar"
                                 // Debug: Verify the copy worked
                                 sh 'ls -la target/'
 
@@ -97,6 +97,20 @@ pipeline{
 			steps{
 				container('docker'){
 					sh 'docker --version'
+                    def dockerHubUsername = 'zakariamestour'
+                    def imageName = "${dockerHubUsername}/jenkins-demo"
+                    def imageTag = "1.0.${env.BUILD_NUMBER}"
+                    def latestTag = "latest"
+                    def versionTag = "${imageName}:${imageTag}"
+
+                    sh "docker build -t ${versionTag} -t ${imageName}:${latestTag} ."
+                    withCredentials([usernamePassword(credentialsId: 'docker_hub', passwordVariable: 'DOCKERHUB_PASSWORD', usernameVariable: 'DOCKERHUB_USERNAME')]){
+                        sh """
+                            echo \$DOCKERHUB_PASSWORD | docker login -u \$DOCKERHUB_USERNAME --password-stdin
+                            docker push ${versionTag}
+                            docker push ${imageName}:${latestTag}
+                        """
+                    }
                 }
             }
         }
