@@ -138,7 +138,7 @@ pipeline{
 		                      sh "sed -i 's|DOCKER_IMAGE_TAG|${imageTag}|g' deployment.yaml"
 		                      sh "cat deployment.yaml"
 		                      sh "kubectl apply -f deployment.yaml"
-		                      sh "kubectl rollout status deployment/pfa-app -n jenkins"
+		                      sh "kubectl rollout status deployment/pfa-app -n dev"
 		                  }
 
                 	}
