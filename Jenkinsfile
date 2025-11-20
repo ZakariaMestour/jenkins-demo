@@ -132,7 +132,16 @@ pipeline{
         stage('Deploy'){
 			steps{
 				container('kubectl'){
-					sh 'kubectl get po -n jenkins'
+					script{
+		                  def imsageTag = "1.0.${env.BUILD_NUMBER}"
+		                  dir('k8s'){
+		                      sh "sed -i 's|DOCKER_IMAGE_TAG|${imageTag}|g' deployment.yaml"
+		                      sh "cat deployment.yaml"
+		                      sh "kubectl apply -f deployment.yaml"
+		                      sh "kubectl rollout status deployment/pfa-app -n dev"
+		                  }
+
+                	}
                 }
             }
         }
