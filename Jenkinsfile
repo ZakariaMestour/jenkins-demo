@@ -133,7 +133,7 @@ pipeline{
 			steps{
 				container('kubectl'){
 					script{
-		                  def imsageTag = "1.0.${env.BUILD_NUMBER}"
+		                  def imageTag = "1.0.${env.BUILD_NUMBER}"
 		                  dir('k8s'){
 		                      sh "sed -i 's|DOCKER_IMAGE_TAG|${imageTag}|g' deployment.yaml"
 		                      sh "cat deployment.yaml"
