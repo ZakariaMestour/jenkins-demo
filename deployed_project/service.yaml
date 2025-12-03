@@ -1,0 +1,14 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: pfa-service
+  namespace: dev       # Important : Doit être le même que le déploiement
+spec:
+  type: NodePort       # C'est ce qui ouvre l'accès à l'extérieur du cluster
+  selector:
+    app: my-app        # C'est l'étiquette pour trouver les Pods (doit matcher deployment.yaml)
+  ports:
+    - protocol: TCP
+      port: 8080       # Le port du Service (interne)
+      targetPort: 8080 # Le port de votre conteneur Java/Tomcat
+      nodePort: 30010  # (Optionnel) On fixe un port précis pour faciliter l'accès (entre 30000-32767)

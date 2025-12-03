@@ -1,0 +1,34 @@
+# 1. Créer le namespace dev s'il n'existe pas
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: dev
+---
+# 2. Définir les droits (Role) DANS le namespace dev
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  namespace: dev
+  name: dev-deployer-role
+rules:
+- apiGroups: ["apps"] # Pour les Deployments
+  resources: ["deployments", "replicasets"]
+  verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
+- apiGroups: [""] # Pour les Pods et Services
+  resources: ["pods", "services"]
+  verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
+---
+# 3. Lier ce Role au compte de service Jenkins (RoleBinding)
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  namespace: dev
+  name: jenkins-to-dev-binding
+subjects:
+- kind: ServiceAccount
+  name: jenkins-k8s      # Le nom de votre SA Jenkins
+  namespace: jenkins     # Le namespace où vit Jenkins
+roleRef:
+  kind: Role
+  name: dev-deployer-role
+  apiGroup: rbac.authorization.k8s.io
